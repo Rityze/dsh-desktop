@@ -1,0 +1,12 @@
+# 由本插件统一声明侧栏和设置子插槽，避免与原壳重复声明。
+- id: ui-sidebar
+  disabled: true
+- id: ui-settings-general
+  disabled: true
+- id: session-title-llm
+  disabled: true
+- insert:
+    - id: michengai-codex-ui-session-title
+      name: '@michengai/dsh-codex-ui/session-title'
+    - id: codex-ui
+      name: '@michengai/dsh-codex-ui'

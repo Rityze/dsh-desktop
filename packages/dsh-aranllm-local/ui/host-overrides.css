@@ -1,0 +1,268 @@
+/*
+ * The adjustments this host needs, kept apart from the copied stylesheets.
+ *
+ * ## Why the originals are not edited
+ *
+ * `Modal/modal.css` and `local-models.css` are the desktop application's own
+ * files, moved here verbatim so they stay diffable against their source. An
+ * edit inside one would be lost the next time they are re-copied, and would also
+ * be invisible to anyone comparing the two trees. What this host needs on top is
+ * stated here instead, where the reason is beside it.
+ *
+ * ## The modal layer
+ *
+ * The desktop application draws its settings as a *page*: the panel is part of
+ * the document, and its own modal at `z-index: 100` is above everything by
+ * default. Here the settings are the host's own dialog at `z-index: 1000`, so a
+ * panel drawn at 100 opens **behind** the window that opened it — measured, and
+ * it looks like the click did nothing.
+ *
+ * One more than the host's layer, and no more than that: a number chosen to be
+ * the highest would sit above the host's own tooltips and menus, which is how a
+ * dialog ends up covering the control it needs the user to press.
+ */
+.modal {
+  z-index: 1001;
+}
+
+/*
+ * The gateway row: an address line, a key field, and the two buttons beside it.
+ *
+ * ## Why it reuses `local-models__address`
+ *
+ * It is the same shape as the line above it — an icon, a value, a few quiet
+ * actions — and the two sit one above the other, so a second visual treatment
+ * would read as a different kind of thing rather than as the other half of the
+ * same one. The class carries the frame; only what is different is stated here.
+ *
+ * ## The field
+ *
+ * A fixed width rather than `flex: 1`. It holds a key, which is a string of
+ * unbroken characters with no useful length to see: a field that grew to the
+ * width of the column would put the buttons a screen away from the thing they
+ * act on, and a monospace face is what makes a wrong character visible.
+ */
+.local-models__gateway {
+  gap: 8px;
+}
+
+.local-models__gateway .local-models__address-label {
+  flex: none;
+  font-size: var(--text-13);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-txt-strong);
+}
+
+.local-models__gateway .local-models__address-input {
+  flex: none;
+  width: 240px;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+}
+
+.local-models__gateway .local-models__address-note {
+  min-width: 0;
+  flex: 1 1 auto;
+  font-size: var(--text-13);
+  color: var(--color-mut);
+}
+
+/*
+ * The load estimate row.
+ *
+ * ## Why it is not `.params__presets`
+ *
+ * It was, and that class is a single horizontal line of short labels — 速度 and
+ * three buttons. This row carries two sentences and two numbers, and a flex row
+ * with `align-items: center` squeezed all four onto one line until they were
+ * unreadable. Same position, different content, so it is a different class.
+ *
+ * ## Why the numbers are on their own line under the label
+ *
+ * The estimate is the thing the row exists to show, and it changes as the form
+ * is edited. Putting it on the label's line would make it compete with the word
+ * naming it, and the reader watching for a number to move should not have to
+ * find it first.
+ *
+ * The figures are tabular — `font-variant-numeric` — because they are read as a
+ * column: three values that change together while a field is edited, and
+ * proportional digits make them jitter horizontally on every change.
+ */
+.params__estimate {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 0 12px;
+  border-bottom: 1px solid var(--color-line, rgba(0, 0, 0, 0.08));
+  margin-bottom: 12px;
+}
+
+.params__estimate-label {
+  font-size: var(--text-12);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-txt-strong);
+}
+
+.params__estimate-value {
+  font-size: var(--text-13);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-txt, inherit);
+}
+
+.params__estimate-kv {
+  font-size: var(--text-12);
+  color: var(--color-mut);
+}
+
+/*
+ * The estimate line, one figure at a time.
+ *
+ * ## Why the figures are separated rather than joined by a dot
+ *
+ * They were `显存 37.2 GB · 内存 0 KB`, and the second is a real answer — every
+ * layer is on the device, so the host holds nothing but the KV cache's
+ * spillover. Read as a sentence it looks like a bug; read as a table it is
+ * information. Each figure gets its own label so a zero is a value rather than
+ * a broken join.
+ *
+ * ## Why the KV figure is on its own line
+ *
+ * It is the one number the form actually controls — context length and cache
+ * type are two of the fields below — and the one users are surprised by, since
+ * at 256K it exceeds the weights. On the same line as the totals it reads as a
+ * breakdown of them; on its own line it reads as the reason they are large.
+ */
+.params__estimate-figures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  font-size: var(--text-13);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-txt, inherit);
+}
+
+.params__estimate-figure {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.params__estimate-figure > b {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-txt-strong);
+}
+
+.params__estimate-kv {
+  font-size: var(--text-12);
+  color: var(--color-mut);
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * The chosen preset.
+ *
+ * ## Why there is a state to draw at all
+ *
+ * The copied stylesheet gives `.params__preset` a hover and nothing else, so a
+ * preset that has been applied looks exactly like one that has not — reported as
+ * "these three might not be selectable, or nothing shows which is chosen". Both
+ * readings were reasonable: the button did write its values, and the panel said
+ * nothing about it afterwards.
+ *
+ * ## Why the state is derived rather than remembered
+ *
+ * A `selected` flag set on click would survive the next edit, and would then be
+ * claiming a preset is in force at the moment its values are no longer the ones
+ * in the form. Comparing the draft against each preset's values instead makes
+ * the highlight mean what a reader assumes it means — this is the set of values
+ * currently in the fields — and it goes out on its own the moment one of them is
+ * changed by hand.
+ *
+ * The fill is the accent at low alpha rather than the accent itself: the note
+ * under these buttons is a sentence in muted grey, and three solid pills would
+ * outweigh it. The border carries the weight instead, so the chosen one is
+ * unmistakable without becoming the loudest thing in the panel.
+ */
+.params__preset[data-active='true'] {
+  color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+  border-color: var(--color-accent);
+  font-weight: var(--font-weight-medium);
+}
+
+.params__preset[data-active='true']:hover {
+  color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 20%, transparent);
+  border-color: var(--color-accent);
+}
+
+/*
+ * The chosen preset's name, said in words as well as in colour.
+ *
+ * A border colour alone is the kind of state that is invisible to a reader who
+ * cannot separate the two hues, and the three pills differ only by their label.
+ * The dot is a second, uncoloured signal: filled for the chosen one, hollow for
+ * the rest. It costs a character of width and it is readable in any rendering.
+ */
+.params__preset-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 6px;
+  vertical-align: middle;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  opacity: 0.45;
+}
+
+.params__preset[data-active='true'] .params__preset-dot {
+  background: currentColor;
+  opacity: 1;
+}
+
+/*
+ * The hub's own adjustments for a panel this narrow.
+ *
+ * ## The download bar wraps instead of compressing
+ *
+ * `.hub__dlbar` is a single flex row: the toggle, a note about what the queue is
+ * doing, and a pause/start control. In the desktop shell the three fit on one
+ * line and it never needed to say what happens when they do not. Here the panel
+ * is 607px wide, so a note as long as "已暂停 · 还有 1 个文件" pushed the control
+ * half off the row and wrapped its own label to two lines — measured, as the
+ * word 开始 stacked vertically beside the button.
+ *
+ * `flex-wrap` lets the control fall to a second line rather than being squeezed,
+ * and `min-width: 0` lets the note shorten instead of holding its intrinsic
+ * width. Both are the ordinary fixes for a row that was written for a wider
+ * window.
+ */
+.hub__dlbar {
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
+.hub__dlbar > .hub__dlnote {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The bar's own controls keep their width, so a wrap does not stretch them. */
+.hub__dlbar > .hub__btn {
+  flex: none;
+}
+
+/*
+ * The list is full width, not a column inside the bar.
+ *
+ * It was nested in the bar during the move to the top of the page, which put it
+ * in the row's third slot: a 300px box with a name, a repository, a state and
+ * two buttons all wrapped inside it. As a sibling it takes the page's width,
+ * which is what its grid expects.
+ */
+.hub__queue {
+  width: 100%;
+  box-sizing: border-box;
+}

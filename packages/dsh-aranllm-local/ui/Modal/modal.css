@@ -1,0 +1,216 @@
+/*
+ * Modal.
+ *
+ * The backdrop is `position: fixed` on the window, so it is unaffected by the
+ * `contain: strict` on `.shell__main` — `contain` makes an element a containing
+ * block for absolutely and fixed positioned descendants, and a modal anchored
+ * inside the main pane would centre on the pane rather than on the window.
+ * Fixed positioning against the viewport sidesteps that entirely, which is why
+ * the card is centred by flexbox on the backdrop rather than by
+ * `translate(-50%, -50%)` on the card.
+ */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /*
+   * Two effects, not one. The tint separates the card from the window behind it;
+   * the blur keeps the labels of the sidebar from competing with the card's
+   * text. Blur is 2px rather than more because a heavier one at this size costs
+   * a full-window repaint on every frame the card animates.
+   */
+  background: color-mix(in srgb, var(--color-bg) 72%, transparent);
+  backdrop-filter: blur(2px);
+}
+
+.modal__card {
+  display: flex;
+  flex-direction: column;
+  width: 420px;
+  max-width: calc(100vw - 48px);
+  padding: 18px;
+  border: 1px solid var(--color-line);
+  border-radius: 14px;
+  background: var(--color-panel);
+  box-shadow: var(--shadow-pop);
+}
+
+.modal__title {
+  margin-bottom: 12px;
+  color: var(--color-txt-strong);
+  font-size: var(--text-14);
+  font-weight: var(--font-weight-medium);
+}
+
+.modal__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/*
+ * The form variant.
+ *
+ * Wider, and bounded in height. The width is for rows that pair a label with a
+ * control — at 420px the two columns meet in the middle and the labels start
+ * wrapping. The bound is the part that matters: a form of thirty settings is
+ * taller than any window, and without a ceiling the card would grow past both
+ * edges and take its own footer out of reach, leaving a user who has filled it
+ * in with nothing to click.
+ *
+ * `min-height: 0` on the body is what lets it scroll inside a flex column —
+ * without it the body's content sets the card's height and the overflow never
+ * engages.
+ */
+.modal__card[data-size='form'] {
+  width: 560px;
+  max-height: calc(100vh - 96px);
+}
+
+.modal__card[data-size='form'] .modal__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  /*
+   * The scrollbar would otherwise sit flush against the fields' right edge,
+   * where it reads as part of the last control.
+   */
+  padding-right: 4px;
+}
+
+/*
+ * The text field.
+ *
+ * The border lives on the input itself here, unlike the composer where the card
+ * is the field. A single-line input has no tray and no footer row, so there is
+ * no outer box for the border to sit on, and the focus ring has to be on the
+ * thing the user is typing into.
+ */
+.modal__input {
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  background: var(--color-bg);
+  color: var(--color-txt-strong);
+  font-family: inherit;
+  font-size: var(--text-14);
+  outline: none;
+}
+
+.modal__input:focus {
+  border-color: var(--color-icon);
+}
+
+/*
+ * A refusal the form has to show.
+ *
+ * Red rather than the accent colour, and below the fields rather than above the
+ * buttons: this is the answer to something the user typed, so it belongs beside
+ * what they typed. The dialog stays open while it is visible — a form that
+ * closed and reported the failure somewhere else would read as a success.
+ */
+.modal__error {
+  margin: 10px 0 0;
+  color: var(--color-danger-fg);
+  font-size: var(--text-13, 13px);
+  line-height: 1.5;
+}
+
+/*
+ * The question a confirmation asks.
+ *
+ * Body weight and a normal line height: this is the one sentence in the dialog
+ * that has to be read, and it is often two — what will happen, and what cannot
+ * be got back.
+ */
+.modal__message {
+  margin: 0;
+  color: var(--color-txt);
+  font-size: var(--text-13, 13px);
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+/*
+ * The consequence, one step down from the sentence above it.
+ *
+ * The dialog's first line says what is about to happen; these say what it
+ * costs and what it does not touch. Weaker on purpose rather than for looks:
+ * three lines at the same weight read as one paragraph and get skipped whole,
+ * where a sentence and two notes get a glance each. It is also why this is a
+ * variant and not a smaller font size on a `<small>` — the styling belongs
+ * with the reason, not with the markup.
+ */
+.modal__message--muted {
+  margin-top: 8px;
+  color: var(--color-muted-foreground);
+  font-size: var(--text-12, 12px);
+}
+
+/*
+ * The action that destroys something.
+ *
+ * Filled red, unlike the menu item of the same intent, because here the button
+ * is the thing the user is being asked to press and there is a cancel beside it
+ * doing nothing. In a menu the same treatment would make it the loudest row on
+ * a list of ordinary verbs.
+ */
+.modal__button[data-variant='danger'] {
+  border-color: transparent;
+  background: var(--color-danger-fg);
+  color: #ffffff;
+}
+
+.modal__button[data-variant='danger']:hover {
+  background: color-mix(in srgb, var(--color-danger-fg) 86%, #000000);
+}
+
+.modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+/*
+ * Buttons.
+ *
+ * `cursor: default` rather than `pointer` throughout the application: this is a
+ * desktop window, and a hand cursor over a button is a web convention that reads
+ * as a link here.
+ */
+.modal__button {
+  height: 32px;
+  padding: 0 14px;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-txt-strong);
+  font-family: inherit;
+  font-size: var(--text-14);
+  cursor: default;
+}
+
+.modal__button:hover {
+  background: var(--color-side-hover);
+}
+
+.modal__button[data-variant='primary'] {
+  border-color: transparent;
+  background: var(--color-button);
+  color: #ffffff;
+}
+
+.modal__button[data-variant='primary']:hover {
+  background: color-mix(in srgb, var(--color-accent) 88%, #000000);
+}
+
+.modal__button:disabled {
+  opacity: 0.45;
+}

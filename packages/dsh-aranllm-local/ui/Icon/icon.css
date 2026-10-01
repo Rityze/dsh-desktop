@@ -1,0 +1,57 @@
+/*
+ * Icon.
+ *
+ * The wrapper is a square box and the svg fills it, so a caller positions an
+ * icon by its box and never has to know the aspect ratio or the internal
+ * viewBox. Sizes are a fixed ladder rather than a number, which keeps every icon
+ * in the application on one of four steps.
+ */
+
+[data-component='icon'] {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  aspect-ratio: 1;
+  /*
+   * A muted grey by default, and a step below body text on purpose.
+   *
+   * The interface uses icons at three strengths — `--icon-base` for structural
+   * glyphs, `--icon-weak-base` for secondary actions, and the surrounding text
+   * colour when the icon is part of a label. A default that followed the text
+   * would erase the first two levels, so the muted value is the baseline and a
+   * caller that wants the third says so.
+   */
+  color: var(--color-icon);
+}
+
+[data-component='icon'] [data-slot='icon-svg'] {
+  width: 100%;
+  height: auto;
+  /*
+   * The svg is a drawing, not a control. Clicking it should reach whatever the
+   * icon is sitting inside — a button, a menu row — rather than being swallowed
+   * by the glyph's own bounding box.
+   */
+  pointer-events: none;
+}
+
+[data-component='icon'][data-size='small'] {
+  width: 16px;
+  height: 16px;
+}
+
+[data-component='icon'][data-size='normal'] {
+  width: 20px;
+  height: 20px;
+}
+
+[data-component='icon'][data-size='medium'] {
+  width: 24px;
+  height: 24px;
+}
+
+[data-component='icon'][data-size='large'] {
+  width: 24px;
+  height: 24px;
+}

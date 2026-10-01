@@ -1,0 +1,435 @@
+/*
+ * The load-parameter form.
+ *
+ * A label column and a control column, right-aligned controls. That is the
+ * reference's arrangement and it is the one that works for a form read as a
+ * list of settings: the eye runs down the labels, and the values line up in a
+ * single column so a scan finds the one that is wrong.
+ *
+ * No frame and no header: this is the body of a modal, and one of those is
+ * already drawn around it. The scrolling lives on the modal's body too, so that
+ * the footer the caller supplies stays put while the settings move.
+ */
+
+.params__error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--color-danger-bg);
+  color: var(--color-danger-fg);
+  font-size: var(--text-12);
+  line-height: 1.5;
+}
+
+.params__group + .params__group {
+  margin-top: 4px;
+  border-top: 1px solid var(--color-line);
+}
+
+.params__group-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-txt-strong);
+  font-family: inherit;
+  font-size: var(--text-12);
+  font-weight: var(--font-weight-medium);
+  text-align: left;
+  cursor: default;
+}
+
+.params__group-head:hover {
+  background: var(--color-menu-hover);
+}
+
+/*
+ * The chevron is rotated rather than swapped for a second glyph.
+ *
+ * Two glyphs would have to be optically matched by hand; a rotation of the one
+ * is exact, and it animates, which is what tells the user the click registered.
+ */
+.params__chevron {
+  display: inline-block;
+  flex: none;
+  color: var(--color-mut);
+  font-size: 9px;
+  transition: transform var(--motion-fast) var(--ease-out);
+}
+
+.params__chevron[data-open='true'] {
+  transform: rotate(90deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .params__chevron {
+    transition: none;
+  }
+}
+
+.params__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 2px 10px 12px;
+}
+
+/* ── A row ────────────────────────────────────────────────────────────── */
+
+.param__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 26px;
+}
+
+.param__row--stacked {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.param__label {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: var(--text-12);
+  color: var(--color-txt);
+}
+
+.param__badge {
+  flex: none;
+  padding: 1px 5px;
+  border: 1px solid var(--color-line);
+  border-radius: 4px;
+  color: var(--color-mut);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.param__control {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+}
+
+.param__static {
+  flex: none;
+  font-size: var(--text-12);
+  color: var(--color-mut);
+}
+
+/* ── A bounded number ─────────────────────────────────────────────────── */
+
+/*
+ * The slider row is stacked: label, then track with its reading, then a line of
+ * prose. The prose is what makes the number meaningful — "9 / 40" says nothing
+ * about where the remaining 31 layers run, and that is the whole decision.
+ */
+.param__slider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.param__range {
+  flex: 1;
+  min-width: 0;
+  height: 20px;
+  margin: 0;
+  /*
+   * `appearance: none` has to be set or the platform's own track is drawn on
+   * top of the one styled below, and the two disagree about height on Windows.
+   */
+  appearance: none;
+  background: transparent;
+}
+
+.param__range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-line);
+}
+
+.param__range::-webkit-slider-thumb {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  margin-top: -5px;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-button);
+}
+
+.param__range:focus-visible {
+  outline: 1px solid var(--color-accent);
+  outline-offset: 4px;
+}
+
+/*
+ * The reading is fixed-width.
+ *
+ * It sits beside a track and updates as the thumb moves; without tabular digits
+ * the numbers either side of the slash shift on every step and the whole line
+ * appears to jitter under the pointer.
+ */
+.param__range-value {
+  flex: none;
+  width: 84px;
+  color: var(--color-txt-strong);
+  font-size: var(--text-12);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.param__range-hint {
+  font-size: var(--text-12);
+  line-height: 1.5;
+  color: var(--color-mut);
+}
+
+/*
+ * The line under a field that has to say when it takes effect.
+ *
+ * Deliberately the same weight as the slider's own hint: both are prose that
+ * explains the row above, and a reader who has seen one of them should not have
+ * to work out whether the other is a warning.
+ */
+.param__field-note {
+  font-size: var(--text-12);
+  line-height: 1.5;
+  color: var(--color-mut);
+}
+
+/* ── Inputs ───────────────────────────────────────────────────────────── */
+
+/*
+ * A fixed width, not a flexible one.
+ *
+ * These hold numbers and short flag values. Stretched across the panel they
+ * would read as prose fields and invite text that is not parseable, which is
+ * the one input this form has to reject anyway.
+ */
+.param__input {
+  width: 132px;
+  height: 26px;
+  padding: 0 8px;
+  border: 1px solid var(--color-set-line);
+  border-radius: 6px;
+  background: var(--color-input-bg);
+  color: var(--color-txt-strong);
+  font-family: inherit;
+  font-size: var(--text-12);
+  /* A number that changes as it is typed shifts the box's text without this. */
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.param__row--stacked .param__input {
+  width: 100%;
+  text-align: left;
+}
+
+.param__select {
+  width: 132px;
+  height: 26px;
+  padding: 0 6px;
+  border: 1px solid var(--color-set-line);
+  border-radius: 6px;
+  background: var(--color-input-bg);
+  color: var(--color-txt-strong);
+  font-family: inherit;
+  font-size: var(--text-12);
+}
+
+/* ── Switch ───────────────────────────────────────────────────────────── */
+
+.param__switch {
+  position: relative;
+  flex: none;
+  width: 34px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+  background: var(--color-neutral-400);
+  cursor: default;
+  transition: background var(--motion-fast) var(--ease-out);
+}
+
+.param__switch[data-on='true'] {
+  background: var(--color-button);
+}
+
+/*
+ * An overridden switch keeps full colour; one showing the engine's default is
+ * dimmed. The distinction is the panel's whole point — a row that looks set but
+ * is only inheriting is a user's setting silently not being applied.
+ */
+.param__switch[data-overridden='false'] {
+  opacity: 0.45;
+}
+
+.param__knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform var(--motion-fast) var(--ease-out);
+}
+
+.param__switch[data-on='true'] .param__knob {
+  transform: translateX(14px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .param__switch,
+  .param__knob {
+    transition: none;
+  }
+}
+
+.param__icon {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--color-mut);
+  font-family: inherit;
+  font-size: var(--text-12);
+  cursor: default;
+}
+
+.param__icon:hover {
+  background: var(--color-menu-hover);
+  color: var(--color-txt-strong);
+}
+
+.param__icon-spacer {
+  display: inline-block;
+  width: 20px;
+}
+
+/* ── Footer ───────────────────────────────────────────────────────────── */
+
+/*
+ * The commit row stays pinned to the bottom of the scrolling area.
+ *
+ * It is the last child of the form, so without this it scrolls away with the
+ * last group and a user who has filled the form in has to scroll back to find
+ * the button that applies it. Sticky rather than lifted out to the modal's own
+ * footer slot because the disabled states are computed here — "save" is only
+ * live once something has changed — and a slot would mean the caller had to
+ * know that.
+ */
+.params__foot {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 10px 10px 2px;
+  /* Opaque, or the rows scrolling under it would show through the buttons. */
+  background: var(--color-panel);
+  border-top: 1px solid var(--color-line);
+}
+
+.params__action {
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  background: var(--color-side);
+  color: var(--color-txt);
+  font-family: inherit;
+  font-size: var(--text-12);
+  cursor: default;
+}
+
+.params__action:hover:not(:disabled) {
+  color: var(--color-txt-strong);
+  border-color: var(--color-mut);
+}
+
+.params__action[data-tone='primary'] {
+  border-color: transparent;
+  background: var(--color-button);
+  color: #fff;
+}
+
+.params__action[data-tone='primary']:hover:not(:disabled) {
+  color: #fff;
+  border-color: transparent;
+  opacity: 0.9;
+}
+
+.params__action:disabled {
+  opacity: 0.45;
+}
+
+/*
+ * The three speed presets, above the groups.
+ *
+ * Above rather than inside a group because they are the answer to the question
+ * that opened this panel — "why is it slow" — and the twenty fields below are
+ * the follow-up. A reader who finds them after scrolling has already spent the
+ * attention this is meant to save.
+ */
+.params__presets {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 0 0 8px;
+}
+
+.params__presets-label {
+  flex: none;
+  font-size: var(--text-12);
+  color: var(--color-muted-foreground);
+}
+
+.params__preset {
+  flex: none;
+  height: 26px;
+  padding: 0 12px;
+  font: inherit;
+  font-size: var(--text-12);
+  color: var(--color-txt, inherit);
+  cursor: pointer;
+  background: var(--color-side);
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+}
+
+.params__preset:hover {
+  color: var(--color-txt-strong, inherit);
+  background: var(--color-hover);
+  border-color: var(--color-accent);
+}
+
+/*
+ * The note that says what a preset cannot do.
+ *
+ * Kept rather than dropped as a nag: "unlock the GPU" is the intent a user
+ * arrives with, and the one thing this panel will not do is that. Leaving it
+ * unsaid sends them away believing the sliders were the answer.
+ */
+.params__presets-note {
+  margin: 0 0 12px;
+  font-size: var(--text-11);
+  line-height: 1.6;
+  color: var(--color-mut);
+}

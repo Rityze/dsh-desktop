@@ -1,0 +1,838 @@
+/*
+ * Local models.
+ *
+ * A single column at the same 720px cap as settings, because the two pages are
+ * read the same way — a list of rows, each with a name and a fact beside it. A
+ * full-width list here would put a model's name and its load button at opposite
+ * edges of a 1920px window, which is the one arrangement that makes a row read
+ * as two unrelated things.
+ */
+
+.local-models {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 28px 24px 40px;
+}
+
+.local-models__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.local-models__head-actions {
+  display: flex;
+  flex: none;
+  gap: 8px;
+}
+
+.local-models__title {
+  margin: 0 0 6px;
+  font-size: var(--text-18);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-txt-strong);
+}
+
+.local-models__hint {
+  margin: 0;
+  font-size: var(--text-13);
+  line-height: 1.6;
+  color: var(--color-mut);
+}
+
+/*
+ * Buttons carry no accent fill on this page.
+ *
+ * "Load" is a per-row action and there are as many of them as there are models
+ * on disk, so a filled button against every row would leave no single act
+ * reading as the page's. The bordered treatment is the row-level one; the fill
+ * is kept for the case where there is exactly one — an empty catalogue inviting
+ * the user to pick a folder.
+ */
+.local-models__action {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  background: var(--color-side);
+  color: var(--color-txt);
+  font-family: inherit;
+  font-size: var(--text-12);
+  cursor: default;
+}
+
+.local-models__action:hover:not(:disabled) {
+  color: var(--color-txt-strong);
+  border-color: var(--color-mut);
+}
+
+.local-models__action:disabled {
+  opacity: 0.5;
+}
+
+/*
+ * A borderless variant, for the secondary control on a row.
+ *
+ * "Load" is the act the row exists for; "parameters" is a detour. Two bordered
+ * buttons of equal weight would read as a choice between them, which is the
+ * wrong reading — one is the action and the other is a setting for it.
+ */
+.local-models__action[data-tone='quiet'] {
+  border-color: transparent;
+  background: transparent;
+  color: var(--color-mut);
+}
+
+.local-models__action[data-tone='quiet']:hover:not(:disabled) {
+  background: var(--color-menu-hover);
+  color: var(--color-txt-strong);
+  border-color: transparent;
+}
+
+.local-models__action[aria-expanded='true'] {
+  background: var(--color-menu-hover);
+  color: var(--color-txt-strong);
+}
+
+.local-models__error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--color-danger-bg);
+  color: var(--color-danger-fg);
+  font-size: var(--text-13);
+  line-height: 1.6;
+}
+
+.local-models__section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-line);
+}
+
+/* The first section has no rule: an edge at the top of a column reads as a table. */
+.local-models__section:first-of-type {
+  padding-top: 0;
+  border-top: none;
+}
+
+.local-models__section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.local-models__section-title {
+  margin: 0;
+  font-size: var(--text-14);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-txt-strong);
+}
+
+.local-models__count {
+  font-size: var(--text-12);
+  color: var(--color-mut);
+}
+
+/* ── The model directory ──────────────────────────────────────────────── */
+
+.local-models__root {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-line);
+  border-radius: 10px;
+  background: var(--color-panel);
+}
+
+.local-models__root-path {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: var(--text-12);
+  color: var(--color-txt);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  /* A path is the thing a user copies out to check in a file manager. */
+  user-select: text;
+}
+
+.local-models__root-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.local-models__root-input {
+  flex: 1;
+  min-width: 0;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--color-set-line);
+  border-radius: 8px;
+  background: var(--color-input-bg);
+  color: var(--color-txt-strong);
+  font-family: var(--font-mono);
+  font-size: var(--text-12);
+}
+
+/* ── Load progress ────────────────────────────────────────────────────── */
+
+.local-models__progress {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-line);
+  border-radius: 10px;
+  background: var(--color-panel);
+}
+
+.local-models__progress-line {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+
+.local-models__progress-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-size: var(--text-13);
+  color: var(--color-txt-strong);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.local-models__progress-phase {
+  flex: none;
+  font-size: var(--text-12);
+  color: var(--color-mut);
+}
+
+/*
+ * The clock is tabular.
+ *
+ * A proportional font changes the width of every digit, so a counter updating
+ * once a second shifts the text beside it on each tick. Fixed-width digits hold
+ * the line still, which is the whole point of showing an elapsed time.
+ */
+.local-models__progress-time {
+  flex: none;
+  font-size: var(--text-12);
+  color: var(--color-mut);
+  font-variant-numeric: tabular-nums;
+}
+
+.local-models__bar {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--color-line);
+}
+
+.local-models__bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--color-accent);
+  transition: width var(--motion-slow) var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .local-models__bar-fill {
+    transition: none;
+  }
+}
+
+/* ── The running model ────────────────────────────────────────────────── */
+
+.local-models__running {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px 14px;
+  border: 1px solid var(--color-line);
+  border-radius: 10px;
+  background: var(--color-panel);
+  color: var(--color-ok);
+}
+
+.local-models__running-name {
+  flex: none;
+  font-size: var(--text-13);
+  color: var(--color-txt-strong);
+}
+
+.local-models__running-url {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: var(--text-12);
+  color: var(--color-mut);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  user-select: text;
+}
+
+.local-models__running-meta {
+  flex: none;
+  font-size: var(--text-12);
+  color: var(--color-mut);
+}
+
+/* ── The catalogue ────────────────────────────────────────────────────── */
+
+.local-models__empty {
+  margin: 0;
+  padding: 28px 16px;
+  border: 1px dashed var(--color-line);
+  border-radius: 12px;
+  font-size: var(--text-13);
+  line-height: 1.6;
+  color: var(--color-mut);
+  text-align: center;
+}
+
+.local-models__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.local-models__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-line);
+  border-radius: 10px;
+  background: var(--color-panel);
+}
+
+/*
+ * The loaded row is outlined, not tinted.
+ *
+ * A filled row would have to pick a background that holds up in both themes and
+ * still leaves the meta text legible; an accent left edge says the same thing
+ * with one property and no contrast budget. It is also the only row whose state
+ * is a fact rather than a suggestion, so it gets the one decoration on the page.
+ */
+.local-models__item[data-loaded='true'] {
+  border-left: 3px solid var(--color-ok);
+}
+
+.local-models__item[data-loading='true'] {
+  border-left: 3px solid var(--color-accent);
+}
+
+.local-models__item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.local-models__item-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-13);
+  color: var(--color-txt-strong);
+}
+
+.local-models__item-meta {
+  font-size: var(--text-12);
+  color: var(--color-mut);
+}
+
+.local-models__item-path {
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: var(--text-12);
+  color: var(--color-mut);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  user-select: text;
+}
+
+.local-models__item-state {
+  flex: none;
+  font-size: var(--text-12);
+  color: var(--color-mut);
+}
+
+/* ── Capability tags ──────────────────────────────────────────────────── */
+
+.local-models__tag {
+  flex: none;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--color-chip-bg);
+  color: var(--color-mut);
+  font-size: var(--text-12);
+  line-height: 1.5;
+}
+
+.local-models__tag[data-tone='vision'] {
+  color: var(--color-link);
+}
+
+.local-models__tag[data-tone='mtp'] {
+  color: var(--color-accent);
+}
+
+.local-models__foot {
+  margin: 0;
+  font-size: var(--text-12);
+  line-height: 1.6;
+  color: var(--color-mut);
+}
+
+/* ── Model list: search and sort ──────────────────────────────────────────── */
+
+.local-models__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.local-models__search {
+  flex: 1;
+  min-width: 0;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  background: var(--color-input-bg);
+  color: inherit;
+  font: inherit;
+  font-size: var(--text-13);
+}
+
+.local-models__search:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+/*
+ * Three segments in one track rather than three buttons.
+ *
+ * They are mutually exclusive and adjacent, which is what a segmented control
+ * is — three separate buttons would each need their own border and would read as
+ * three unrelated actions.
+ */
+.local-models__sort {
+  display: flex;
+  flex: none;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.local-models__sort-item {
+  padding: 0 11px;
+  height: 28px;
+  border: 0;
+  border-right: 1px solid var(--color-line);
+  background: none;
+  color: var(--color-muted-foreground);
+  font: inherit;
+  font-size: var(--text-12);
+  cursor: pointer;
+}
+
+.local-models__sort-item:last-child {
+  border-right: 0;
+}
+
+.local-models__sort-item:hover {
+  background: var(--color-side-hover);
+}
+
+.local-models__sort-item[data-active='true'] {
+  background: color-mix(in oklab, var(--color-accent) 10%, transparent);
+  color: var(--color-accent);
+}
+
+.local-models__empty {
+  margin: 0;
+  padding: 12px 2px;
+  color: var(--color-muted-foreground);
+  font-size: var(--text-13);
+}
+
+/* ── Model detail sheet ───────────────────────────────────────────────────── */
+
+.local-models__detail {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 7px 16px;
+  font-size: var(--text-12);
+}
+
+.local-models__detail-row {
+  display: contents;
+}
+
+.local-models__detail dt {
+  color: var(--color-muted-foreground);
+  white-space: nowrap;
+}
+
+/*
+ * Values wrap and break rather than truncate. These are the exact figures a
+ * user copies out, and an ellipsis in the middle of a byte count or a path is
+ * worse than a second line.
+ */
+.local-models__detail dd {
+  margin: 0;
+  min-width: 0;
+  word-break: break-all;
+}
+
+.local-models__detail-note {
+  margin: 0;
+  color: var(--color-muted-foreground);
+  font-size: var(--text-13);
+}
+
+/* ── Load log ─────────────────────────────────────────────────────────────── */
+
+.local-models__log {
+  margin: 8px 0 0;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.local-models__log-head {
+  padding: 6px 10px;
+  font-size: var(--text-12);
+  color: var(--color-muted-foreground);
+  cursor: pointer;
+  background: var(--color-side);
+}
+
+/*
+ * Monospace, capped in height, scrolling.
+ *
+ * A weight read prints hundreds of lines and this is a progress report rather
+ * than a document — the cap is what keeps a long load from pushing the rest of
+ * the page off screen, and the scroll position is set to the end so the newest
+ * line is the one in view.
+ */
+.local-models__log-body {
+  margin: 0;
+  max-height: 220px;
+  overflow: auto;
+  padding: 8px 10px;
+  background: var(--color-panel);
+  font-family: var(--font-mono, ui-monospace, 'Cascadia Mono', Consolas, monospace);
+  font-size: var(--text-11);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* ── Server statistics ────────────────────────────────────────────────────── */
+
+.local-models__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 8px 0;
+  padding: 7px 10px;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  background: var(--color-side);
+  font-size: var(--text-12);
+  color: var(--color-muted-foreground);
+}
+
+/*
+ * Tabular figures so a rate that changes every couple of seconds does not shift
+ * the text around it — the readout is watched for movement, and reflow hides it.
+ */
+.local-models__stat strong {
+  color: var(--color-txt-strong, inherit);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-semibold);
+}
+
+/* A queue is the one figure here that means "something is wrong". */
+.local-models__stat[data-warn='true'] {
+  color: var(--color-warn);
+}
+
+/*
+ * The memory projection.
+ *
+ * Same shape as the counters row and deliberately so: both are readouts about
+ * the running server, and two different treatments would suggest two different
+ * kinds of thing.
+ */
+.local-models__memory {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 8px 0;
+  padding: 7px 10px;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  font-size: var(--text-12);
+  color: var(--color-muted-foreground);
+}
+
+/* ── Model libraries ─────────────────────────────────────────────────────── */
+
+/*
+ * A list, not a single editable line.
+ *
+ * There can be more than one library — declining a move keeps the old folder
+ * as a second one — and a `;`-joined string would make that look like one value
+ * with a strange character in it. A row per folder says what it is.
+ */
+.local-models__roots {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0;
+  margin: 0 0 10px;
+  list-style: none;
+}
+
+.local-models__root {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 26px;
+  font-size: var(--text-13);
+}
+
+.local-models__root-path {
+  overflow: hidden;
+  font-family: var(--font-mono, monospace);
+  font-size: var(--text-12);
+  color: var(--color-txt);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
+ * The primary library is marked, because the order is not visible otherwise.
+ *
+ * The first root is the one models are downloaded into and the one whose ids
+ * are unsuffixed; a user looking at two rows has no way to tell which that is.
+ */
+.local-models__root-tag {
+  flex: none;
+  padding: 1px 6px;
+  font-size: var(--code-11);
+  color: var(--color-accent);
+  background: color-mix(in oklab, var(--color-accent) 10%, transparent);
+  border-radius: 4px;
+}
+
+.local-models__root-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/*
+ * The move question.
+ *
+ * Bordered and set apart rather than inline, because it is a decision that
+ * stops everything else: nothing is changed until one of the two answers is
+ * given, and a block that looked like ordinary page content would let a user
+ * scroll past the question they are being asked.
+ */
+.local-models__move {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  margin-top: 12px;
+  background: var(--color-auto-action-bg);
+  border: 1px solid var(--color-line);
+  border-radius: 10px;
+}
+
+.local-models__move-title {
+  margin: 0;
+  font-size: var(--text-13);
+  color: var(--color-txt-strong);
+  word-break: break-all;
+}
+
+.local-models__move-body {
+  margin: 0;
+  font-size: var(--text-13);
+  line-height: 1.6;
+  color: var(--color-txt);
+}
+
+.local-models__move-sample {
+  margin: 0;
+  overflow: hidden;
+  font-size: var(--text-12);
+  color: var(--color-muted-foreground);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.local-models__move-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.local-models__move-note {
+  margin: 0;
+  font-size: var(--text-12);
+  line-height: 1.6;
+  color: var(--color-muted-foreground);
+}
+
+/*
+ * A row of row-level actions.
+ *
+ * The section is a `column` flex container, so its direct children stack — two
+ * buttons in a section are two rows, each the full width, which reads as a
+ * stack of unrelated controls rather than as a toolbar. This wrapper is what
+ * puts them side by side, and it is the same treatment `.local-models__root-actions`
+ * gives the library buttons.
+ */
+.local-models__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+/*
+ * The service address, above everything else on the page.
+ *
+ * A row of its own rather than a section: it is a fact about this machine, not
+ * a setting to work through, and giving it a title and a rule would make it
+ * read as the first of several things to configure when it is the one line a
+ * user may need to copy out.
+ */
+.local-models__address {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+  font-size: var(--text-13);
+  color: var(--color-muted-foreground);
+  background: var(--color-auto-action-bg);
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+}
+
+.local-models__address-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.local-models__address-value {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--text-13);
+  color: var(--color-txt-strong);
+  user-select: all;
+}
+
+/*
+ * Wider than a port field, because it holds an address.
+ *
+ * `user-select: all` on the input's value is not set here — the whole row is
+ * copyable at rest, and the point of the field is to be typed into rather than
+ * read from.
+ */
+.local-models__address-input {
+  width: 200px;
+  height: 28px;
+  padding: 0 10px;
+  font: inherit;
+  font-family: var(--font-mono, monospace);
+  font-size: var(--text-12);
+  color: var(--color-txt);
+  background: var(--color-bg);
+  border: 1px solid var(--color-line);
+  border-radius: 6px;
+}
+
+.local-models__address-input:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+/*
+ * The copy buttons read as part of the address row, not as page actions.
+ *
+ * Set apart from the two on the left by a gap rather than a rule: they act on
+ * the address beside them, and a divider would make them look like another
+ * group of controls with its own subject.
+ */
+.local-models__address .local-models__action {
+  padding: 3px 9px;
+  font-size: var(--text-12);
+}
+
+/*
+ * Stopping a load.
+ *
+ * Quiet, not red: this is not a destructive action — nothing is lost, the load
+ * simply stops — and a red button beside a progress bar would read as "something
+ * has gone wrong" at a moment when nothing has.
+ */
+.local-models__progress-cancel {
+  flex: none;
+  margin-left: auto;
+  padding: 3px 10px;
+  font: inherit;
+  font-size: var(--text-12);
+  color: var(--color-muted-foreground);
+  cursor: pointer;
+  background: none;
+  border: 1px solid var(--color-line);
+  border-radius: 7px;
+  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.local-models__progress-cancel:hover:not(:disabled) {
+  color: var(--color-txt-strong);
+  border-color: var(--color-muted-foreground);
+}
+
+.local-models__progress-cancel:disabled {
+  cursor: default;
+  opacity: 0.6;
+}

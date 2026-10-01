@@ -1,0 +1,1050 @@
+/*
+ * The model hub.
+ *
+ * Two columns rather than the single 720px stack the other pages use, and the
+ * difference is the task: this page is a *choice between two sets at once* —
+ * which repository, then which file — and a reader moving back and forth
+ * between them is the normal case, not an edge one. Stacked, choosing a file
+ * would scroll its repository off the screen.
+ *
+ * The split is not even. The list is a fixed 320px because repository names
+ * are short and their metadata is two numbers; the detail pane takes the rest,
+ * because a file table has a name that can be eighty characters long and a size
+ * that must stay beside it.
+ */
+
+.hub {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 28px 24px 24px;
+}
+
+.hub__head {
+  display: flex;
+  flex: none;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.hub__title {
+  margin: 0 0 6px;
+  font-size: var(--text-18);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-txt-strong);
+}
+
+.hub__sub {
+  margin: 0;
+  font-size: var(--text-13);
+  line-height: 1.6;
+  color: var(--color-mut);
+}
+
+/*
+ * The hosts are a choice between named alternatives, drawn as the same
+ * segmented control the model page uses for its sort order — copied from
+ * `local-models__sort` line for line, including which tokens it names.
+ *
+ * The tokens are the reason this is a copy rather than a recollection: that
+ * control uses `--color-line`, `--color-muted-foreground` and
+ * `--color-side-hover`, which read as aliases of `--color-border`,
+ * `--color-mut` and `--color-auto-action-bg-hover` and resolve to the same
+ * values today. Writing them from memory gave a control that was *nearly* the
+ * same, which is what a person notices.
+ */
+.hub__sources {
+  display: flex;
+  flex: none;
+  overflow: hidden;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+}
+
+.hub__source-item {
+  height: 28px;
+  padding: 0 11px;
+  font: inherit;
+  font-size: var(--text-12);
+  color: var(--color-muted-foreground);
+  cursor: pointer;
+  background: none;
+  border: 0;
+  border-right: 1px solid var(--color-line);
+}
+
+.hub__source-item:last-child {
+  border-right: 0;
+}
+
+.hub__source-item:hover {
+  background: var(--color-side-hover);
+}
+
+.hub__source-item[data-active='true'] {
+  color: var(--color-accent);
+  background: color-mix(in oklab, var(--color-accent) 10%, transparent);
+}
+
+/*
+ * The proxy row.
+ *
+ * Mixed into a line rather than given a card of its own: it is a prerequisite
+ * for the page, not a feature of it, and a bordered block would make it read as
+ * the main thing here. The alternatives sit beside the current value as quiet
+ * buttons — the shape a user reaches for when the answer is "not that one".
+ */
+.hub__net {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  min-height: 28px;
+}
+
+.hub__netlabel {
+  font-size: var(--text-12);
+  color: var(--color-muted-foreground);
+}
+
+.hub__netinput {
+  width: 260px;
+  height: 28px;
+  padding: 0 10px;
+  font: inherit;
+  font-size: var(--text-12);
+  color: var(--color-txt);
+  background: var(--color-bg);
+  border: 1px solid var(--color-line);
+  border-radius: 6px;
+}
+
+.hub__netinput:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+/*
+ * Truncated from the left, not the right.
+ *
+ * A Windows path's meaningful end is its last segments — `…\AranLLM\models`
+ * says which folder it is; `D:\APPs\Ara…` does not. `direction: rtl` clips the
+ * start while keeping the text and the ellipsis in the right reading order.
+ */
+.hub__rootpath {
+  max-width: 420px;
+  overflow: hidden;
+  font-size: var(--text-12);
+  color: var(--color-txt);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  direction: rtl;
+  text-align: left;
+  unicode-bidi: plaintext;
+}
+
+.hub__netprobe {
+  font-size: var(--text-12);
+  color: var(--color-mut);
+}
+
+.hub__netprobe--bad {
+  color: var(--color-chip-rm);
+}
+
+.hub__search {
+  display: flex;
+  flex: none;
+  gap: 8px;
+}
+
+.hub__input {
+  flex: 1;
+  padding: 9px 12px;
+  font: inherit;
+  font-size: var(--text-13);
+  color: var(--color-txt);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.hub__input:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+}
+
+.hub__btn {
+  padding: 8px 14px;
+  font: inherit;
+  font-size: var(--text-13);
+  color: var(--color-txt);
+  cursor: pointer;
+  background: var(--color-bg);
+  border: 1px solid var(--color-btn-border);
+  border-radius: 8px;
+}
+
+.hub__btn:hover:not(:disabled) {
+  background: var(--color-auto-action-bg-hover);
+}
+
+.hub__btn:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.hub__btn--primary {
+  color: var(--color-accent-foreground);
+  background: var(--color-button);
+  border-color: var(--color-accent);
+}
+
+.hub__btn--quiet {
+  color: var(--color-mut);
+}
+
+.hub__note {
+  margin: 0;
+  font-size: var(--text-13);
+}
+
+.hub__note--bad {
+  color: var(--color-danger, var(--color-chip-rm));
+}
+
+.hub__body {
+  display: grid;
+  flex: 1;
+  /*
+   * The list is elastic between a floor and a ceiling.
+   *
+   * It was a flat 320px, which is narrower than the row needs: an avatar, a
+   * name and three figures do not fit, and the name — the thing the reader is
+   * scanning for — was the part that ellipsised. A `minmax` gives it room to
+   * grow on a wide window and stops the detail pane being squeezed on a narrow
+   * one, so the two panes share the shortage instead of the name absorbing it.
+   */
+  grid-template-columns: minmax(380px, 440px) 1fr;
+  gap: 20px;
+  min-height: 0;
+}
+
+.hub__list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+/*
+ * A result row, to the reference's own shape.
+ *
+ * Its search results are horizontal bands: a square on the left, the name and a
+ * line of detail in the middle, the figures at the trailing edge. What this was
+ * — a vertical card with the name, the meta and the tags stacked — makes a list
+ * of forty results a column of blocks, and comparing two of them means reading
+ * each one down to find the same figure in both.
+ *
+ * Colours, radii and sizes are this application's; the *organisation* is what is
+ * borrowed, which is the part that makes a long list scannable.
+ */
+.hub__repo {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  padding: 10px 12px;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  border-radius: 10px;
+  transition: background-color 120ms ease;
+}
+
+.hub__repo:hover {
+  background: var(--color-side-hover);
+}
+
+/*
+ * Marked with a left bar rather than only a fill.
+ *
+ * The row that is open in the detail pane has to be findable while the reader's
+ * eye is on the right-hand column, and a fill alone is easy to lose against the
+ * hover state that follows the pointer. The bar survives a scan down one edge.
+ */
+.hub__repo--on {
+  background: var(--color-side-hover);
+  box-shadow: inset 2px 0 0 var(--color-accent);
+}
+
+/*
+ * A monogram where the reference shows a model image.
+ *
+ * Forty pixels, which is the size that reads as an avatar rather than as an
+ * icon — square with a radius rather than a circle, matching the reference's
+ * thumbnails rather than an account photo, because what it stands for is a
+ * repository and not a person.
+ */
+.hub__avatar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  font-size: var(--text-15);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-txt-strong);
+  background: var(--color-side);
+  border-radius: 10px;
+}
+
+/*
+ * Six hues, all muted, all from the token set's own families.
+ *
+ * Derived from the publisher rather than chosen per row, so one organisation
+ * reads as one colour down the list. Kept low-saturation and paired with the
+ * strong ink: a saturated block here would compete with the name beside it,
+ * which is the thing being read.
+ */
+.hub__avatar[data-seed='0'] { background: color-mix(in srgb, var(--color-accent) 16%, var(--color-side)); }
+.hub__avatar[data-seed='1'] { background: color-mix(in srgb, var(--color-warn) 18%, var(--color-side)); }
+.hub__avatar[data-seed='2'] { background: color-mix(in srgb, var(--color-ok) 16%, var(--color-side)); }
+.hub__avatar[data-seed='3'] { background: color-mix(in srgb, var(--color-blue) 16%, var(--color-side)); }
+.hub__avatar[data-seed='4'] { background: color-mix(in srgb, var(--color-code-inline-fg) 16%, var(--color-side)); }
+.hub__avatar[data-seed='5'] { background: var(--color-side); }
+
+.hub__repobody {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+  /*
+   * The whole row's width, now that no figure column competes for it. The name
+   * was ellipsised to `Q...` while three numbers sat at the trailing edge; they
+   * have moved to the detail header, and the name has the room to itself.
+   */
+}
+
+.hub__reponame {
+  overflow: hidden;
+  font-size: var(--text-13);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-txt-strong);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The second line: publisher, the GGUF mark, and a few tags. */
+.hub__reposub {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.hub__repopub {
+  flex: none;
+  font-size: var(--text-12);
+  color: var(--color-muted-foreground);
+}
+
+/*
+ * The GGUF mark, kept apart from the tag list.
+ *
+ * A tag is what the mirror said; this is what this application checked. Mixing
+ * them would make the one fact a reader filters on indistinguishable from the
+ * forty that mean nothing here.
+ */
+.hub__gguf {
+  flex: none;
+  padding: 1px 6px;
+  font-size: var(--text-11);
+  color: var(--color-ok);
+  background: color-mix(in srgb, var(--color-ok) 14%, transparent);
+  border-radius: 5px;
+}
+
+/*
+ * The repository's figures, as chips in the detail header.
+ *
+ * Tinted blocks rather than plain text, following the reference: they are read
+ * as a group — "how popular is this" — and a block reads as one unit where
+ * three sets of characters separated by spacing read as three facts.
+ */
+.hub__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.hub__stat {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding: 2px 8px;
+  font-size: var(--text-12);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-txt);
+  background: var(--color-side);
+  border-radius: 7px;
+}
+
+.hub__statwhen {
+  font-size: var(--text-12);
+  color: var(--color-muted-foreground);
+}
+
+.hub__tags {
+  display: flex;
+  flex: none;
+  gap: 4px;
+  align-items: center;
+  overflow: hidden;
+}
+
+.hub__tag {
+  flex: none;
+  padding: 1px 6px;
+  font-size: var(--text-11);
+  color: var(--color-muted-foreground);
+  white-space: nowrap;
+  background: var(--color-side);
+  border-radius: 5px;
+}
+
+.hub__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.hub__tag {
+  padding: 1px 6px;
+  font-size: var(--code-11);
+  color: var(--color-mut);
+  background: var(--color-chip-bg);
+  border-radius: 4px;
+}
+
+.hub__detail {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.hub__detailhead {
+  flex: none;
+}
+
+.hub__repotitle {
+  margin: 0 0 4px;
+  font-size: var(--text-15);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-txt-strong);
+  word-break: break-all;
+}
+
+.hub__table {
+  width: 100%;
+  font-size: var(--text-13);
+  border-collapse: collapse;
+}
+
+/*
+ * The two narrow columns are given a width and the name column is not.
+ *
+ * `hub__path` carries `max-width: 0`, which is the usual way to make a table
+ * cell stop bidding for space — but it only works when some *other* cell does
+ * bid. With all three unset the table laid itself out at its minimum and every
+ * column came out narrow, which is why a 46 GB shard's name was ellipsised to
+ * `Qwen3-Coder-3...`.
+ *
+ * Two words and a number are bounded; a file name is not, and it is the one
+ * field a reader has to read in full — the shard suffix at the end is what
+ * tells `…-00001-of-00002` from `…-00002-of-00002`.
+ */
+.hub__table th:nth-child(2),
+.hub__table td:nth-child(2) {
+  width: 96px;
+}
+
+.hub__table th:nth-child(3),
+.hub__table td:nth-child(3) {
+  width: 104px;
+}
+
+.hub__table th {
+  position: sticky;
+  top: 0;
+  padding: 6px 8px;
+  font-size: var(--text-12);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-mut);
+  text-align: left;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.hub__table td {
+  padding: 7px 8px;
+  color: var(--color-txt);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/*
+ * The name column takes what is left rather than being given a width: it is
+ * the only column whose content varies in length, and the other two are two
+ * words and a number.
+ */
+.hub__path {
+  overflow: hidden;
+  width: 100%;
+  max-width: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
+ * A name that still does not fit ends rather than middle-ellipsises.
+ *
+ * The tail is the part that distinguishes two shards of one model, and the head
+ * is the part that says which model — so the ellipsis has to be at the end, and
+ * the full name is in the title for the case where even that is not enough.
+ */
+
+.hub__size {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.hub__badge {
+  padding: 1px 5px;
+  margin-right: 6px;
+  font-size: var(--code-11);
+  color: var(--color-accent-foreground);
+  background: var(--color-accent);
+  border-radius: 4px;
+}
+
+.hub__empty {
+  margin: 0;
+  padding: 16px 0;
+  font-size: var(--text-13);
+  line-height: 1.6;
+  color: var(--color-mut);
+}
+
+.hub__error {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  background: var(--color-auto-action-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+}
+
+.hub__error p {
+  margin: 0;
+  font-size: var(--text-13);
+  line-height: 1.6;
+  color: var(--color-txt);
+}
+
+.hub__more {
+  align-self: center;
+  margin-top: 8px;
+}
+
+/*
+ * Below this width the two columns stop fitting and the detail pane becomes
+ * unusable at roughly the point a file name can no longer be told from its
+ * neighbour. Stacked, in the order they are used.
+ */
+@media (max-width: 860px) {
+  .hub__body {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(140px, 40%) 1fr;
+  }
+}
+
+/* ── Choosing and downloading ───────────────────────────────────────────── */
+
+/*
+ * The selection bar sits above the table and stays there.
+ *
+ * It is the answer to "what have I picked and how big is it", which is the
+ * question a user has while ticking rows further down — so it must not scroll
+ * away with them.
+ */
+.hub__bar {
+  display: flex;
+  flex: none;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.hub__checkall {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: var(--text-13);
+  color: var(--color-txt);
+  cursor: pointer;
+}
+
+.hub__pickedinfo {
+  flex: 1;
+  font-size: var(--text-12);
+  color: var(--color-mut);
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * The checkbox column is sized to its control rather than to a fraction.
+ * A fixed 32px keeps every row's name starting at the same x, which is what
+ * makes a long file table scannable.
+ */
+.hub__colpick {
+  width: 32px;
+  padding-right: 0;
+  text-align: center;
+}
+
+.hub__row--on {
+  background: var(--color-auto-action-bg);
+}
+
+/* ── The progress panel ─────────────────────────────────────────────────── */
+
+/*
+ * Pinned to the bottom of the page, outside the scrolling body.
+ *
+ * A 46 GB transfer outlives any amount of scrolling, and a progress bar that
+ * can be scrolled off the screen is one the user has to hunt for at exactly the
+ * moment they want to check it.
+ */
+.hub__progress {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  background: var(--color-auto-action-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+}
+
+.hub__progress--failed {
+  border-color: var(--color-chip-rm);
+}
+
+.hub__progresshead {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.hub__progressname {
+  overflow: hidden;
+  font-size: var(--text-13);
+  color: var(--color-txt-strong);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hub__progressnum {
+  flex: none;
+  font-size: var(--text-12);
+  color: var(--color-mut);
+  font-variant-numeric: tabular-nums;
+}
+
+.hub__track {
+  height: 6px;
+  overflow: hidden;
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+.hub__fill {
+  height: 100%;
+  background: var(--color-accent);
+  border-radius: 3px;
+  transition: width 200ms linear;
+}
+
+/*
+ * With no total there is no honest percentage, so the bar sweeps instead of
+ * filling. A bar sitting at 0% for ten minutes is worse than no bar at all:
+ * it reads as a stalled download.
+ */
+.hub__fill[data-indeterminate='true'] {
+  animation: hub-sweep 1.4s ease-in-out infinite;
+  opacity: 0.6;
+}
+
+@keyframes hub-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hub__fill[data-indeterminate='true'] {
+    animation: none;
+  }
+}
+
+.hub__progressfoot {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--text-12);
+  color: var(--color-mut);
+}
+
+/* ── The queue ──────────────────────────────────────────────────────────── */
+
+/*
+ * Sits above the progress panel and shares its treatment, because the two are
+ * read together: one says which file, the other says how it is going.
+ *
+ * Capped in height and scrolled rather than allowed to grow. Ten queued models
+ * would otherwise push the file table off the screen, and the table is what the
+ * user is reading while the queue runs.
+ */
+.hub__queue {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 168px;
+  padding: 12px 14px;
+  overflow-y: auto;
+  background: var(--color-auto-action-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+}
+
+.hub__queuehead {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.hub__queuetitle {
+  font-size: var(--text-13);
+  color: var(--color-txt-strong);
+}
+
+.hub__queuenum {
+  flex: none;
+  font-size: var(--text-12);
+  color: var(--color-mut);
+  font-variant-numeric: tabular-nums;
+}
+
+.hub__queuelist {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.hub__queueitem {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  overflow: hidden;
+  font-size: var(--text-12);
+  color: var(--color-mut);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hub__queueitem--more {
+  color: var(--color-muted-foreground);
+}
+
+.hub__queuesize {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * Failures are marked by their text colour alone, not by a background or a
+ * border. The list is already a quiet grey block, and a coloured row inside it
+ * would read as a different kind of thing rather than as a note about one line.
+ */
+.hub__queuelist--bad .hub__queueitem {
+  color: var(--color-chip-rm);
+}
+
+.hub__queuefoot {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hub__queuenote {
+  font-size: var(--text-12);
+  line-height: 1.5;
+  color: var(--color-mut);
+}
+
+/*
+ * The move question.
+ *
+ * Bordered and set apart rather than inline: nothing changes until one of the
+ * answers is given, and a block that looked like ordinary page content would
+ * let a user scroll past the question they are being asked.
+ */
+.hub__move {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  background: var(--color-auto-action-bg);
+  border: 1px solid var(--color-line);
+  border-radius: 10px;
+}
+
+.hub__move-title {
+  margin: 0;
+  font-size: var(--text-13);
+  color: var(--color-txt-strong);
+  word-break: break-all;
+}
+
+.hub__move-body {
+  margin: 0;
+  font-size: var(--text-13);
+  line-height: 1.6;
+  color: var(--color-txt);
+}
+
+.hub__move-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.hub__move-note {
+  margin: 0;
+  font-size: var(--text-12);
+  line-height: 1.6;
+  color: var(--color-muted-foreground);
+}
+
+/* ── The download list entry point ──────────────────────────────────────── */
+
+/*
+ * A button and, while something runs, the rate beside it.
+ *
+ * The count rides on the button rather than sitting in a section of the page:
+ * the queue is something a user checks and leaves, and the number is the only
+ * reason to open it. A badge rather than a label because the button's width
+ * must not change as items finish — that is the row the eye is on.
+ */
+.hub__dlbar {
+  display: flex;
+  flex: none;
+  gap: 10px;
+  align-items: center;
+}
+
+.hub__dlbadge {
+  min-width: 18px;
+  padding: 0 5px;
+  margin-left: 2px;
+  font-size: var(--code-11);
+  color: var(--color-muted-foreground);
+  text-align: center;
+  background: var(--color-chip-bg);
+  border-radius: 9px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* A running download is the one case worth an accent. */
+.hub__dlbadge--on {
+  color: var(--color-accent-foreground);
+  background: var(--color-accent);
+}
+
+.hub__dlnote {
+  font-size: var(--text-12);
+  color: var(--color-muted-foreground);
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * The download list, drawn inline.
+ *
+ * ## Why it is not a window
+ *
+ * The desktop application opened this in a window of its own and its button
+ * called a bridge method that opened one. This host has a single window, so the
+ * call was a no-op and the button did nothing — reported as "点击下载清单没有反应".
+ * The list is drawn under that button instead, and the styles below are what
+ * makes it read as attached to it rather than as a separate panel: the same
+ * surface, one row narrower, and no shadow of its own.
+ *
+ * ## Why every row states its own condition
+ *
+ * A queue here can hold entries that are pending, running, failed or done, and
+ * — unlike the desktop's — entries that are paused. Four states that differ only
+ * by a word are hard to scan, so each carries a dot as well: a colour difference
+ * a reader can take in without reading, and one that survives a monochrome
+ * rendering where colour alone would not.
+ */
+.hub__queue {
+  flex: none;
+  max-height: 320px;
+  overflow-y: auto;
+  margin-top: 8px;
+  border: 1px solid var(--color-line);
+  border-radius: 10px;
+  background: var(--color-side);
+}
+
+.hub__queuehead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--color-line);
+  background: var(--color-side);
+}
+
+.hub__queuetitle {
+  font-size: var(--text-13);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-txt-strong);
+}
+
+.hub__queueactions {
+  display: flex;
+  gap: 6px;
+}
+
+.hub__queueempty {
+  margin: 0;
+  padding: 14px 12px;
+  font-size: var(--text-13);
+  color: var(--color-mut);
+}
+
+.hub__queuelist {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hub__queueitem {
+  display: grid;
+  /* dot · name · state · size · actions */
+  grid-template-columns: 8px minmax(0, 1fr) auto auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.hub__queueitem:last-child {
+  border-bottom: none;
+}
+
+/*
+ * The dot's colour is the row's state, and the three tones are the ones the rest
+ * of the page already uses: accent for work in progress, muted for waiting,
+ * error for a failure, and a dimmed accent for a finished transfer.
+ */
+.hub__queuedot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-mut);
+}
+
+.hub__queueitem[data-state='active'] .hub__queuedot {
+  background: var(--color-accent);
+}
+
+.hub__queueitem[data-state='done'] .hub__queuedot {
+  background: color-mix(in srgb, var(--color-accent) 45%, transparent);
+}
+
+.hub__queueitem[data-state='failed'] .hub__queuedot {
+  background: var(--color-error, #d4380d);
+}
+
+.hub__queuename {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  font-size: var(--text-13);
+  color: var(--color-txt);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hub__queuerepo {
+  font-size: var(--text-11);
+  color: var(--color-mut);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hub__queuestate,
+.hub__queuesize {
+  font-size: var(--text-12);
+  color: var(--color-mut);
+  white-space: nowrap;
+}
+
+.hub__queueitem[data-state='failed'] .hub__queuestate {
+  color: var(--color-error, #d4380d);
+}
+
+.hub__queueops {
+  display: flex;
+  gap: 4px;
+}

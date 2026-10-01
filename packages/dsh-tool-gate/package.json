@@ -1,0 +1,14 @@
+{
+  "name": "dsh-tool-gate",
+  "version": "0.1.0",
+  "description": "Holds heavy tools out of the prompt until the conversation asks for them.",
+  "private": true,
+  "type": "module",
+  "main": "./index.js",
+  "exports": {
+    ".": { "default": "./index.js" },
+    "./package.json": "./package.json"
+  },
+  "license": "MIT",
+  "peerDependencies": { "@deepseek-ai/cordis": "^4.0.1" }
+}

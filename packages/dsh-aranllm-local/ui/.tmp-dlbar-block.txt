@@ -1,0 +1,79 @@
+      <div className="hub__dlbar">
+        <button
+          type="button"
+          className="hub__btn hub__btn--quiet"
+          /*
+           * Opens a window rather than toggling a panel over this page.
+           *
+           * The panel used to appear here, and a download runs for minutes while
+           * the user reads a conversation or changes a setting — so the one thing
+           * it could not do was stay on screen. The window renders the same
+           * component and receives the same broadcast queue state, so it is the
+           * panel with the limitation removed rather than a second thing.
+           *
+           * This used to be a toggle, and the state for it is gone with the
+           * panel: a switch that sets something nothing reads is the kind of
+           * leftover that makes the next reader look for its consumer.
+           */
+          onClick={() => setQueueOpen((open) => !open)}
+          aria-expanded={queueOpen}
+        >
+          <Icon name="arrow-down-to-line" size="small" />
+          下载清单
+          {queue.active ? (
+            <span className="hub__dlbadge hub__dlbadge--on">
+              {String(queue.pending.length + 1)}
+            </span>
+          ) : queue.pending.length + queue.completed.length + queue.failed.length > 0 ? (
+            <span className="hub__dlbadge">
+              {String(queue.pending.length + queue.completed.length + queue.failed.length)}
+            </span>
+          ) : null}
+        </button>
+        {queue.active ? (
+          <span className="hub__dlnote">
+            {rate(queue.speedBytesPerSecond) || '正在下载'}
+          </span>
+        ) : queue.paused && queue.pending.length > 0 ? (
+          <span className="hub__dlnote">已暂停 · 还有 {String(queue.pending.length)} 个文件</span>
+        ) : null}
+        {/*
+          The two controls the queue's own state calls for.
+
+          `paused` is a field this host added to the queue — the desktop shell
+          had no concept of stopping without emptying — so the button that acts
+          on it is added beside it rather than worked into the existing row.
+        */}
+        {queue.pending.length > 0 || queue.active ? (
+          queue.paused ? (
+            <button
+              type="button"
+              className="hub__btn hub__btn--quiet"
+              onClick={() => void bridge.hub.resumeQueue().then(setQueue).catch(() => undefined)}
+            >
+              开始
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="hub__btn hub__btn--quiet"
+              onClick={() => void bridge.hub.pauseQueue().then(setQueue).catch(() => undefined)}
+            >
+              暂停
+            </button>
+          )
+        ) : null}
+      </div>
+
+      {queueOpen ? (
+        <QueuePanel
+          queue={queue}
+          onStart={(repoId, file) => void bridge.hub.enqueue([{ repoId, file }]).then(setQueue).catch(() => undefined)}
+          onPause={() => void bridge.hub.pauseQueue().then(setQueue).catch(() => undefined)}
+          onResume={() => void bridge.hub.resumeQueue().then(setQueue).catch(() => undefined)}
+          onRemove={(repoId, file) =>
+            void bridge.hub.removeQueueItem(repoId, file).then(setQueue).catch(() => undefined)
+          }
+          onClear={() => void bridge.hub.clearQueue().then(setQueue).catch(() => undefined)}
+        />
+      ) : null}

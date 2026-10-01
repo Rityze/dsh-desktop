@@ -1,0 +1,90 @@
+/*
+ * The live rate pill.
+ *
+ * ## Why it is dressed as the host's own stats pill
+ *
+ * It sits in the same dock row as the host's `⚡ N tok/s · 🗄 缓存命中 N%`, and
+ * two chips side by side are read as one control group. A second visual
+ * language — a different radius, a different colour, a border — would make this
+ * look like it came from somewhere else, which it did, and the row would read
+ * as two unrelated things rather than as one line of figures.
+ *
+ * So the values below are the host's own, mirrored rather than imported: the
+ * class names are hashed per-module and cannot be relied on across a version,
+ * but the custom properties are part of the theme and are stable.
+ */
+
+.live-rate {
+  box-sizing: border-box;
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: calc(var(--dsh-content-font-size-secondary, 13px) - 1px);
+  line-height: calc(20px + var(--dsh-content-font-delta-secondary, 0px));
+  color: var(--dsw-alias-label-tertiary);
+  /*
+   * Tabular figures, because the number changes twice a second: proportional
+   * digits make the pill's width move with every sample, and a control that
+   * resizes while being watched reads as a fault rather than as a reading.
+   */
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/*
+ * The number, one step brighter than its unit.
+ *
+ * The rate is what the pill is for; `tok/s` is the label on it. Weight rather
+ * than size, because two sizes in a chip this small looks like a mistake.
+ */
+.live-rate__value {
+  color: var(--dsw-alias-label-secondary);
+  font-weight: var(--font-weight-medium, 500);
+}
+
+.live-rate__unit {
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 0.92em;
+}
+
+/*
+ * The leading dot, so the pill is findable without reading it.
+ *
+ * It sits before the number rather than after, and it pulses: a rate that is
+ * moving is the one signal that separates "generating right now" from "the
+ * last reply's average", and the two are otherwise the same text.
+ */
+.live-rate::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--dsw-alias-state-business-primary, #4d6bfe);
+  animation: live-rate-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes live-rate-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/*
+ * Motion is the one signal here that a reader cannot opt out of, so the
+ * preference is honoured rather than ignored — the dot stays, it just stops.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .live-rate::before {
+    animation: none;
+  }
+}

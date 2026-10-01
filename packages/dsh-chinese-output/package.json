@@ -1,0 +1,14 @@
+{
+  "name": "dsh-chinese-output",
+  "version": "0.1.0",
+  "description": "Pins every answer and every thought to Simplified Chinese.",
+  "private": true,
+  "type": "module",
+  "main": "./index.js",
+  "exports": {
+    ".": { "default": "./index.js" },
+    "./package.json": "./package.json"
+  },
+  "license": "MIT",
+  "peerDependencies": { "@deepseek-ai/cordis": "^4.0.1" }
+}
