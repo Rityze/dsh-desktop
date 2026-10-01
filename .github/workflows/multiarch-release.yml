@@ -1,0 +1,147 @@
+# Build the Windows and macOS packages for one release tag.
+#
+# ## Why macOS is built here and not on the machine this branch came from
+#
+# That machine runs Windows. electron-builder cannot produce a macOS bundle
+# there: `dmg` needs `hdiutil`, signing needs `codesign`, and the bundled Node
+# binary under `node_modules/node/bin` is a Windows executable — the build
+# refuses at `scripts/verify-target.mjs` before any of that, which is the guard
+# working as intended rather than an obstacle to route around.
+#
+# GitHub's `macos-latest` is arm64, which is the architecture the package is
+# wanted for, so the runner is also the target.
+#
+# ## Why there is no signing
+#
+# The upstream workflow signs and notarizes through a self-hosted runner and
+# Apple credentials this repository does not have. An unsigned build is what can
+# be produced here, and the artifact is named so that it is obvious. macOS will
+# refuse to open it by double-click until the user allows it in System Settings
+# — the release notes say so.
+#
+# ## What is verified before publishing
+#
+# The test suite and a type check, because a package that installs and then
+# fails to start is worse than no package. They are the same two commands the
+# upstream release runs.
+name: Release packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to build and attach to
+        required: true
+        default: v0.1.1-local-rocmfp4
+
+permissions:
+  contents: write
+
+jobs:
+  # The tests and the type check run once, on Linux, rather than in each build
+  # job: they answer a question about the source, not about the platform, and a
+  # failure should stop both builds before either spends ten minutes packaging.
+  verify:
+    name: Tests and types
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm run build
+      - run: npx --no-install vitest run
+      - run: npm run typecheck
+
+  windows:
+    name: Windows x64
+    needs: verify
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set the version from the tag
+        shell: bash
+        run: npm version --no-git-tag-version --allow-same-version "${{ inputs.tag }}"
+
+      - run: npm ci
+      - run: npm run build
+
+      # The wrapper rather than `electron-builder` directly: it installs the
+      # patch that inserts `Call dshPromoteDirectories` into electron-builder's
+      # NSIS template, without which the installer builds but leaves the install
+      # directory empty. Measured, as `warning 6010: install function
+      # "dshPromoteDirectories" not referenced`.
+      - name: Package
+        run: node scripts/electron-builder-windows.mjs --win --x64 --publish never
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-x64
+          path: dist/*.exe
+          if-no-files-found: error
+
+  macos:
+    name: macOS arm64
+    needs: verify
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Set the version from the tag
+        shell: bash
+        run: npm version --no-git-tag-version --allow-same-version "${{ inputs.tag }}"
+
+      - run: npm ci
+      - run: npm run build
+
+      # `--dir` first, so a packaging failure names the step rather than
+      # appearing as a DMG that never gets made.
+      - name: Verify the target
+        run: node scripts/verify-target.mjs darwin arm64
+
+      # Unsigned: `CSC_IDENTITY_AUTO_DISCOVERY=false` stops electron-builder
+      # looking for a certificate and failing when it finds none. The zip is
+      # kept as well as the dmg because it is the one that survives a transfer
+      # through a browser without being quarantined as a disk image.
+      - name: Package
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: npx --no-install electron-builder --mac --arm64 --publish never
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-arm64
+          path: |
+            dist/*.dmg
+            dist/*.zip
+          if-no-files-found: error
+
+  publish:
+    name: Attach to the release
+    needs: [windows, macos]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: List what was built
+        run: find artifacts -type f -printf '%p  %s bytes\n'
+
+      - name: Attach
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # `--clobber` so a re-run of this workflow replaces the previous
+          # assets rather than failing on the name already being taken.
+          find artifacts -type f \( -name '*.exe' -o -name '*.dmg' -o -name '*.zip' \) -print0 \
+            | xargs -0 -r gh release upload "${{ inputs.tag }}" --clobber
