@@ -185,8 +185,13 @@ what remains on screen is the answer, and that is what this pins.
   from the UI with its own base URL and key.
 - **No automatic model loading at launch.** A multi-gigabyte load is a decision,
   and the application does not make it on the user's behalf.
-- **No code signing.** The installer is unsigned, so Windows warns once and macOS
-  refuses to open it by double-click until the user allows it.
+- **No code signing.** The installer is unsigned, so Windows warns once — choose
+  "More info → Run anyway".
+- **No macOS package.** A macOS bundle cannot be built on a Windows machine, and
+  the work here was done on one. The configuration for it is still in
+  `package.json` and `scripts/`, untouched; a runner with a macOS image can
+  produce one by mirroring the Windows job and calling
+  `electron-builder --mac --arm64`. What is published is Windows x64.
 
 ---
 
@@ -195,8 +200,7 @@ what remains on screen is the answer, and that is what this pins.
 ```bash
 npm ci
 npm run build
-node scripts/electron-builder-windows.mjs --win --x64 --publish never   # Windows
-npx --no-install electron-builder --mac --arm64 --publish never         # macOS
+node scripts/electron-builder-windows.mjs --win --x64 --publish never
 ```
 
 Use the wrapper on Windows, not `electron-builder` directly: it installs the patch

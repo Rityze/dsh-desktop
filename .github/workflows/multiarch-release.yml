@@ -1,29 +1,24 @@
-# Build the Windows and macOS packages for one release tag.
+# Build the Windows package for one release tag.
 #
-# ## Why macOS is built here and not on the machine this branch came from
+# ## Why only Windows, and why it is built here rather than locally
 #
-# That machine runs Windows. electron-builder cannot produce a macOS bundle
-# there: `dmg` needs `hdiutil`, signing needs `codesign`, and the bundled Node
-# binary under `node_modules/node/bin` is a Windows executable — the build
-# refuses at `scripts/verify-target.mjs` before any of that, which is the guard
-# working as intended rather than an obstacle to route around.
+# A macOS bundle cannot be produced on a Windows machine: `dmg` needs `hdiutil`,
+# signing needs `codesign`, and the bundled Node under `node_modules/node/bin` is
+# a Windows executable — `scripts/verify-target.mjs` refuses before any of that,
+# which is the guard working rather than an obstacle to route around.
 #
-# GitHub's `macos-latest` is arm64, which is the architecture the package is
-# wanted for, so the runner is also the target.
-#
-# ## Why there is no signing
-#
-# The upstream workflow signs and notarizes through a self-hosted runner and
-# Apple credentials this repository does not have. An unsigned build is what can
-# be produced here, and the artifact is named so that it is obvious. macOS will
-# refuse to open it by double-click until the user allows it in System Settings
-# — the release notes say so.
+# This branch's macOS target is therefore not built. The configuration for it is
+# still in `package.json` and `scripts/`, untouched, so a runner with a macOS
+# image can produce one by adding a job that mirrors the Windows one below and
+# calling `electron-builder --mac --arm64`. What is published today is Windows
+# x64, which is the platform the branch was developed and measured on.
 #
 # ## What is verified before publishing
 #
-# The test suite and a type check, because a package that installs and then
-# fails to start is worse than no package. They are the same two commands the
-# upstream release runs.
+# The test suite and the type check, because a package that installs and then
+# fails to start is worse than no package. They answer a question about the
+# source rather than about the platform, so they run once, on Linux, ahead of the
+# build rather than beside it.
 name: Release packages
 
 on:
@@ -38,9 +33,6 @@ permissions:
   contents: write
 
 jobs:
-  # The tests and the type check run once, on Linux, rather than in each build
-  # job: they answer a question about the source, not about the platform, and a
-  # failure should stop both builds before either spends ten minutes packaging.
   verify:
     name: Tests and types
     runs-on: ubuntu-24.04
@@ -73,9 +65,8 @@ jobs:
 
       # The wrapper rather than `electron-builder` directly: it installs the
       # patch that inserts `Call dshPromoteDirectories` into electron-builder's
-      # NSIS template, without which the installer builds but leaves the install
-      # directory empty. Measured, as `warning 6010: install function
-      # "dshPromoteDirectories" not referenced`.
+      # NSIS template, without which the installer builds, warns that the
+      # function is unreferenced, and leaves the install directory empty.
       - name: Package
         run: node scripts/electron-builder-windows.mjs --win --x64 --publish never
 
@@ -85,48 +76,9 @@ jobs:
           path: dist/*.exe
           if-no-files-found: error
 
-  macos:
-    name: macOS arm64
-    needs: verify
-    runs-on: macos-14
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Set the version from the tag
-        shell: bash
-        run: npm version --no-git-tag-version --allow-same-version "${{ inputs.tag }}"
-
-      - run: npm ci
-      - run: npm run build
-
-      # `--dir` first, so a packaging failure names the step rather than
-      # appearing as a DMG that never gets made.
-      - name: Verify the target
-        run: node scripts/verify-target.mjs darwin arm64
-
-      # Unsigned: `CSC_IDENTITY_AUTO_DISCOVERY=false` stops electron-builder
-      # looking for a certificate and failing when it finds none. The zip is
-      # kept as well as the dmg because it is the one that survives a transfer
-      # through a browser without being quarantined as a disk image.
-      - name: Package
-        env:
-          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
-        run: npx --no-install electron-builder --mac --arm64 --publish never
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: macos-arm64
-          path: |
-            dist/*.dmg
-            dist/*.zip
-          if-no-files-found: error
-
   publish:
     name: Attach to the release
-    needs: [windows, macos]
+    needs: [windows]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/download-artifact@v4
@@ -141,7 +93,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          # `--clobber` so a re-run of this workflow replaces the previous
-          # assets rather than failing on the name already being taken.
-          find artifacts -type f \( -name '*.exe' -o -name '*.dmg' -o -name '*.zip' \) -print0 \
+          # `--clobber` so a re-run replaces the previous assets rather than
+          # failing on the name already being taken.
+          find artifacts -type f -name '*.exe' -print0 \
             | xargs -0 -r gh release upload "${{ inputs.tag }}" --clobber
