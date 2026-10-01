@@ -50,23 +50,26 @@
     - id: dsh-desktop-market-installer
       name: dsh-desktop-market-installer
 
-    # One shared image tool for conversations and Office workflows. Off by
-    # default: `image_generate` is a schema every request pays for and a request
-    # that is not drawing something never uses it.
+    # One shared image tool for conversations and Office workflows.
+    #
+    # Off by default, but listed here rather than marked `disabled: true`: the
+    # switch is `DEFAULT_DISABLED_HOST_PLUGINS` in `host-plugin-state.ts`, which
+    # the settings toggle can reverse. A `disabled` flag on this row could not
+    # be, because it is read after the state and outranks it.
     - id: dsh-image-generation
       name: dsh-image-generation
-      disabled: true
 
     # DSH PPT owns one direct PPTD workflow and one standard Composer client.
     # The package contains no Tencent editor runtime or SlideP route.
     #
     # Off by default. Its eleven pptd_/ppt_ tools are the largest single block of
     # schemas a session carries — the reason a greeting once spent 94.3K tokens —
-    # and a document being written is the only thing that needs them. Still
-    # installed, so a hook can mount it on demand; see `dsh-tool-gate`.
+    # and a document being written is the only thing that needs them.
+    #
+    # Listed in `DEFAULT_DISABLED_HOST_PLUGINS` rather than marked here, so the
+    # settings toggle can bring it back; see the note on the image row above.
     - id: dsh-ppt-composer
       name: 'dsh-ppt-composer'
-      disabled: true
       config:
         root: !!js dshHomePath('kimi-ppt')
 
@@ -87,10 +90,12 @@
 #
 # Off by default: it is a menu action, not something a session needs, and every
 # mounted plugin is a set of routes resolved on every request.
+#
+# Listed in `DEFAULT_DISABLED_HOST_PLUGINS` rather than marked `disabled: true`
+# here, so the settings toggle can turn it back on.
 - insert:
     - id: dsh-desktop-preset-transfer
       name: dsh-desktop-preset-transfer
-      disabled: true
 
 # Local models. The plugin scans a folder for .gguf weights, runs llama-server
 # on the chosen one, and publishes it to `ctx.llm` as an OpenAI-compatible

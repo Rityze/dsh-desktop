@@ -11,11 +11,34 @@ describe('Desktop host plugin state', () => {
   it('defaults the built-in image tool to disabled and persists a reversible host-only switch', async () => {
     const home = await mkdtemp(join(tmpdir(), 'dsh-host-state-'))
     homes.push(home)
-    expect(await readDisabledHostPlugins(home)).toEqual(['dsh-image-generation'])
+    /*
+     * Three, not one: this branch also withholds the office suite and the
+     * preset exporter until a session asks for them. The assertion is on the
+     * whole list rather than on membership so that a package added to
+     * `DEFAULT_DISABLED_HOST_PLUGINS` and forgotten here is a failure rather
+     * than a silently untested default.
+     */
+    /*
+     * The order is the constant's own on the first read and sorted after a
+     * write, because `setHostPluginEnabled` sorts what it persists. Both are
+     * asserted as written so a change to either is visible.
+     */
+    expect(await readDisabledHostPlugins(home)).toEqual([
+      'dsh-image-generation',
+      'dsh-ppt-composer',
+      'dsh-desktop-preset-transfer',
+    ])
     await setHostPluginEnabled(home, 'dsh-image-generation', true)
-    expect(await readDisabledHostPlugins(home)).toEqual([])
+    expect(await readDisabledHostPlugins(home)).toEqual([
+      'dsh-desktop-preset-transfer',
+      'dsh-ppt-composer',
+    ])
     await setHostPluginEnabled(home, 'dsh-image-generation', false)
-    expect(await readDisabledHostPlugins(home)).toEqual(['dsh-image-generation'])
+    expect(await readDisabledHostPlugins(home)).toEqual([
+      'dsh-desktop-preset-transfer',
+      'dsh-image-generation',
+      'dsh-ppt-composer',
+    ])
   })
 
   it('preserves an explicitly enabled state from an existing Profile', async () => {

@@ -5,7 +5,29 @@ import { disableProfilePlugin, isProfilePluginDisabledByPatch, readMarketDisable
 
 const STATE_FILE = 'desktop-host-plugins.json'
 export const BUILTIN_IMAGE_GENERATION = 'dsh-image-generation'
-const DEFAULT_DISABLED_HOST_PLUGINS = [BUILTIN_IMAGE_GENERATION]
+
+/**
+ * What is switched off before the user has expressed a preference.
+ *
+ * These are the packages whose tool schemas every request pays for and whose
+ * work only some requests need: an image tool, an office suite, a preset
+ * exporter. A session that is not drawing or writing a document carries their
+ * definitions in every prompt otherwise — measured, on a greeting, as 94.3K
+ * tokens of context against 11.9K with them withheld.
+ *
+ * **This list rather than `disabled: true` in the host patch.** The two look
+ * equivalent and are not: `withoutDisabledInsertions` removes a package from the
+ * patch when its name appears in this state, so a user who turns one on gets it
+ * — and a row marked `disabled: true` in the patch itself is never removable,
+ * because that flag is read after the state and outranks it. Switching these
+ * packages off here rather than there is what keeps the settings toggle able to
+ * switch them back on.
+ */
+const DEFAULT_DISABLED_HOST_PLUGINS = [
+  BUILTIN_IMAGE_GENERATION,
+  'dsh-ppt-composer',
+  'dsh-desktop-preset-transfer',
+]
 
 export async function readDisabledHostPlugins(dshHome: string): Promise<string[]> {
   let source: string

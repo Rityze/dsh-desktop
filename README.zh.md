@@ -28,6 +28,12 @@ DSH Desktop 把本地 DeepSeek Harness 封装为可安装的桌面应用。它�
 
 ## 下载安装
 
+> [!NOTE]
+> **这个分支不是上游的发布线。** 它带来 AMD ROCm 硬件上的本地模型支持、工具门禁和
+> 中文输出，代码从 0.1.1 的树分出来，而不是从当前的 `main`。它改了什么、每个改动背
+> 后的实测数据，都写在 [`docs/local-rocmfp4.md`](docs/local-rocmfp4.md)；下面的下载
+> 链接是上游的。
+
 我们提供稳定版和预览版：**稳定版**可在[官网](https://dshdesktop.com/zh/)下载，推荐日常使用；**预览版**可在 [GitHub Releases](https://github.com/dataelement/dsh-desktop/releases) 中选择标记为 **Pre-release** 的版本。
 
 预览版除了包含我们的新增功能，还会积极跟进 DeepSeek Harness 官方最新版本，可能与社区插件不兼容，**不建议普通用户使用**。欢迎愿意尝鲜的用户体验并在社区反馈；经尝鲜用户验证后，我们才会向全体社区用户推送。

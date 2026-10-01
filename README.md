@@ -29,6 +29,13 @@ DSH Desktop packages the local DeepSeek Harness experience as an installed deskt
 
 ## Download
 
+> [!NOTE]
+> **This branch is not the upstream release line.** It carries local-model support
+> for AMD ROCm hardware, tool gating and Chinese output, and it descends from the
+> 0.1.1 tree rather than from current `main`. Read
+> [`docs/local-rocmfp4.md`](docs/local-rocmfp4.md) for what it changes and the
+> measurements behind each change; the download links below are upstream's.
+
 We offer stable and preview releases: download the **stable release**, recommended for everyday use, from our [official website](https://www.dshdesktop.com/#download). To try a **preview release**, choose a version marked **Pre-release** on [GitHub Releases](https://github.com/dataelement/dsh-desktop/releases).
 
 Preview releases include our newest features and closely track the latest official DeepSeek Harness versions. They may be incompatible with community plugins and are **not recommended for general users**. Early adopters are welcome to try them and share feedback in our community; we roll out updates to the wider community only after validation by early adopters.

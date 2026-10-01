@@ -192,9 +192,25 @@ describe('profile consistency', () => {
       ...after.dsh.profile.bundles.map((name: string) => patches.get(name) ?? []),
       desktop
     ])
-    expect(entries.filter((entry) => !entry.disabled && entry.name === 'dsh-ppt')).toHaveLength(0)
-    expect(entries.filter((entry) => !entry.disabled && entry.name === 'dsh-ppt-composer')).toHaveLength(1)
-    expect(entries.filter((entry) => !entry.disabled && entry.name === 'dsh-image-generation')).toHaveLength(2)
+    /*
+     * Counted over every row, enabled or not, because this branch disables some
+     * of them by default.
+     *
+     * The assertion this replaced filtered on `!entry.disabled` and counted 1
+     * composer and 2 image-generation rows. That was a fair reading of the
+     * shipped configuration, and it stopped being one when the desktop layer
+     * began turning the heavy tool suites off so that a request does not pay for
+     * schemas it will not use.
+     *
+     * What the test is actually about is duplication — the comment above it
+     * records that composing the installed bundles with the desktop layer "used
+     * to activate the core twice (and could insert the composer twice)" — and a
+     * disabled row cannot be activated at all, so it cannot be activated twice.
+     * The enabled count is asserted separately, where it is the actual point.
+     */
+    expect(entries.filter((entry) => entry.name === 'dsh-ppt')).toHaveLength(0)
+    expect(entries.filter((entry) => entry.name === 'dsh-ppt-composer')).toHaveLength(1)
+    expect(entries.filter((entry) => entry.name === 'dsh-image-generation')).toHaveLength(2)
     const once = await readFile(join(profile, 'package.json'), 'utf8')
     await expect(healProfileBundles(home, HOST_COMPOSED_BUNDLES)).resolves.toEqual({ added: [], removed: [] })
     expect(await readFile(join(profile, 'package.json'), 'utf8')).toBe(once)
